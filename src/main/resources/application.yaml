@@ -20,9 +20,9 @@ spring:
 security:
   jwt:
     # Provide a Base64-encoded random key of at least 32 bytes; keep it outside source control.
-    secret-base64: ${JWT_SECRET_BASE64}
+    secret-base64: ${JWT_SECRET_BASE64:V8etWJY19CdNrdHAH4HTjMm5xtQw8cO0j9/ctP1bxUo=}
     # Token lifetime in milliseconds (one hour by default).
-    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+    expiration-ms: ${JWT_EXPIRATION_MS:900000}
 
 logging:
   level:

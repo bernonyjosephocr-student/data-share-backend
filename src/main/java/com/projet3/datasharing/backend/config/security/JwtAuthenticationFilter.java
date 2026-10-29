@@ -1,4 +1,4 @@
-package com.projet3.datasharing.backend.security;
+package com.projet3.datasharing.backend.config.security;
 
 import java.io.IOException;
 import java.util.List;
