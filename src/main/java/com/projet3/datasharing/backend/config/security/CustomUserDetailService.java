@@ -5,20 +5,20 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.projet3.datasharing.backend.entity.UserAccount;
 import com.projet3.datasharing.backend.repository.UserAccountRepository;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor 
-public class CustomUserDetailService implements UserDetailsService{
-    private final UserAccountRepository accountRepository;
+@RequiredArgsConstructor
+public class CustomUserDetailService implements UserDetailsService {
 
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        
-        return accountRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + email));
-    }
+  private final UserAccountRepository accountRepository;
+
+  @Override
+  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+
+    return accountRepository.findByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + email));
+  }
 }

@@ -11,5 +11,20 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
 
+  minio:
+    image: 'cgr.dev/chainguard/minio:latest'
+    container_name: file_sharing_storage
+    ports:
+      - "9000:9000" # Port API for Spring Boot
+      - "9001:9001" # Port Console Web for admin
+    environment:
+      MINIO_ROOT_USER: minioadmin      # Équivalent of the Access Key AWS
+      MINIO_ROOT_PASSWORD: minioadmin  # Équivalent of the Secret Key AWS
+    volumes:
+      # Physical folder to not loose the files
+      - ./dossier-serveur:/data
+    command: server /data --console-address ":9001"
+
 volumes:
   pgdata:
+

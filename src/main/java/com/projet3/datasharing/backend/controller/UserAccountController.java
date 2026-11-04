@@ -20,27 +20,29 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserAccountController {
 
-	private final UserAccountService userAccountService;
+    private final UserAccountService userAccountService;
 
-	/**
-	 * Register a user
-	 * @param userAccountDTO
-	 * @return HttpStatus.CREATED
-	 */
-	@PostMapping("/register")
-	public ResponseEntity<Void> register(@Valid @RequestBody UserAccountDTO userAccountDTO) {
-		userAccountService.register(userAccountDTO);
-		return ResponseEntity.status(HttpStatus.CREATED).build();
-	}
+    /**
+     * Register a user
+     * 
+     * @param userAccountDTO
+     * @return HttpStatus.CREATED
+     */
+    @PostMapping("/register")
+    public ResponseEntity<Void> register(@Valid @RequestBody UserAccountDTO userAccountDTO) {
+        userAccountService.register(userAccountDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 
-	/**
-	 * Authenticates a user.
-	 * @param userAccountDTO
-	 * @return a valid session TOKEN
-	 */
-	@PostMapping("/login")
-	public ResponseEntity<Map<String, String>> login(@Valid @RequestBody UserAccountDTO userAccountDTO) {
-		String token = userAccountService.login(userAccountDTO);
-		return ResponseEntity.ok(Map.of("token", token));
-	}
+    /**
+     * Authenticates a user.
+     * 
+     * @param userAccountDTO
+     * @return a valid session TOKEN
+     */
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody UserAccountDTO userAccountDTO) {
+        String token = userAccountService.login(userAccountDTO);
+        return ResponseEntity.ok(Map.of("token", token));
+    }
 }

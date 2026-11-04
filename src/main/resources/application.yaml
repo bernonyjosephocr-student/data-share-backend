@@ -26,8 +26,21 @@ security:
 
 logging:
   level:
+    root: INFO
+    com.projet3.datasharing.backend: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
 
 file:
   upload-dir: ${FILE_UPLOAD_DIR:./local-file-store}
+  retention-day: 7
+storage:
+  type: s3
+
+aws:
+  s3:
+    endpoint: http://localhost:9000
+    bucket-name: my-shared-bucket
+    access-key: minioadmin
+    secret-key: minioadmin
+    region: us-east-1

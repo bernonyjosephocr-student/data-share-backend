@@ -11,13 +11,13 @@ import com.projet3.datasharing.backend.exception.EmailAlreadyUsedException;
 @RestControllerAdvice
 public class GlobalRestExceptionHandler {
 
-	@ExceptionHandler(BadCredentialsException.class)
-	public ResponseEntity<Void> handleBadCredentials(BadCredentialsException exception) {
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-	}
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Void> handleBadCredentials(BadCredentialsException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
 
-	@ExceptionHandler(EmailAlreadyUsedException.class)
-	public ResponseEntity<Void> handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-	}
+    @ExceptionHandler(EmailAlreadyUsedException.class)
+    public ResponseEntity<Void> handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
 }

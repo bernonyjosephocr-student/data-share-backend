@@ -8,8 +8,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public record UserAccountDTO(
-		Long id,
-		@NotBlank @Email String email,
-		@NotBlank @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) String password,
-		LocalDateTime createdAt) {
+        Long id,
+        @NotBlank @Email String email,
+        @NotBlank @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) String password,
+        LocalDateTime createdAt) {
 }

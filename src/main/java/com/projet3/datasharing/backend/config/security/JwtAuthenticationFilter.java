@@ -17,48 +17,53 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Authentifie les requêtes présentant un JWT Bearer valide.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	private static final String BEARER_PREFIX = "Bearer ";
+  private static final String BEARER_PREFIX = "Bearer ";
 
-	private final JWTService jwtService;
-	private final UserAccountRepository userAccountRepository;
+  private final JWTService jwtService;
+  private final UserAccountRepository userAccountRepository;
 
-	@Override
-	protected void doFilterInternal(
-			HttpServletRequest request,
-			HttpServletResponse response,
-			FilterChain filterChain) throws ServletException, IOException {
-		String authorization = request.getHeader("Authorization");
-		if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
-			filterChain.doFilter(request, response);
-			return;
-		}
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain filterChain) throws ServletException, IOException {
+    String authorization = request.getHeader("Authorization");
 
-		String subject;
-		try {
-			subject = jwtService.validateAndExtractSubject(authorization.substring(BEARER_PREFIX.length()));
-		} catch (IllegalArgumentException exception) {
-			SecurityContextHolder.clearContext();
-			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid bearer token");
-			return;
-		}
+    log.debug("Authorization header present: {}", authorization != null);
+    if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
+      log.info("No Bearer token found in the request, proceeding without authentication.");
+      filterChain.doFilter(request, response);
+      return;
+    }
 
-		if (userAccountRepository.findByEmail(subject).isEmpty()) {
-			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT account no longer exists");
-			return;
-		}
+    String subject;
+    try {
+      subject = jwtService.validateAndExtractSubject(authorization.substring(BEARER_PREFIX.length()));
+    } catch (IllegalArgumentException exception) {
+      SecurityContextHolder.clearContext();
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid bearer token");
+      return;
+    }
 
-		UsernamePasswordAuthenticationToken authentication =
-				UsernamePasswordAuthenticationToken.authenticated(subject, null, List.of());
-		authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		filterChain.doFilter(request, response);
-	}
+    if (userAccountRepository.findByEmail(subject).isEmpty()) {
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT account no longer exists");
+      return;
+    }
+
+    UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(subject,
+        null, List.of());
+    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    filterChain.doFilter(request, response);
+  }
 }
