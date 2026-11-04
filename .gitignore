@@ -35,3 +35,4 @@ build/
 ### resource for github copilot
 .github/
 resources/
+dossier-serveur/
