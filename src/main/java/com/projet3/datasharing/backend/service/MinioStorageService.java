@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.projet3.datasharing.backend.exception.FileNotFoundException;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 @Service
+@Slf4j
 public class MinioStorageService implements StorageService {
 
   private final S3Client s3Client;
@@ -166,6 +168,7 @@ public class MinioStorageService implements StorageService {
 
       s3Client.deleteObjects(deleteObjectsRequest);
 
+      log.info("Successfully deleted all files in MinIO storage for Upload ID: {}", uploadId);
     } catch (S3Exception e) {
       throw new RuntimeException("Failed to delete directory files from MinIO for Upload ID: " + uploadId, e);
     }

@@ -122,6 +122,12 @@ public class FileController {
     return ResponseEntity.noContent().build();
   }
 
+  /**
+   * Downloads a file using a valid download token.
+   * 
+   * @param downloadRequestDTO
+   * @return
+   */
   @PostMapping(path = "/api/files/download", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Resource> downloadFile(
       @Valid @RequestBody DownloadRequestDTO downloadRequestDTO) {

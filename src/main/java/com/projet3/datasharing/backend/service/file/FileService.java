@@ -153,7 +153,8 @@ public class FileService {
     String uploadId = jwtService.validateAndExtractDownloadSubject(metadata.getDownloadToken());
     storageService.delete(uploadId);
 
-    log.info("File with ID: {} deleted successfully for user: {}", fileId, userAccount.getEmail());
+    log.info("File with ID: {} and Folder: {}deleted successfully for user: {}", fileId, uploadId,
+        userAccount.getEmail());
   }
 
   /**

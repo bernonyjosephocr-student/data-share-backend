@@ -19,11 +19,9 @@ public interface FileMetadataMapper {
     @Mapping(target = "downloadToken", ignore = true)
     FileMetadata toEntity(FileMetadataDTO fileMetadataDTO);
 
-    @Mapping(target = "isPasswordProtected", expression = "java(fileMetadata.getFilePassword() != null)")
+    @Mapping(target = "isPasswordProtected", expression = "java(fileMetadata.getFilePassword() != null && !fileMetadata.getFilePassword().isBlank())")
     @Mapping(target = "filePassword", ignore = true)
     FileMetadataDTO toDto(FileMetadata fileMetadata);
 
-    @Mapping(target = "isPasswordProtected", expression = "java(fileMetadata.getFilePassword() != null)")
-    @Mapping(target = "filePassword", ignore = true)
     List<FileMetadataDTO> toDtoList(List<FileMetadata> fileMetadataList);
 }

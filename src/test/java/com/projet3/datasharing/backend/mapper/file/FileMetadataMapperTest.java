@@ -26,7 +26,8 @@ class FileMetadataMapperTest {
         null,
         true,
         3,
-        "password");
+        "password",
+        null);
 
     FileMetadata entity = mapper.toEntity(dto);
 
