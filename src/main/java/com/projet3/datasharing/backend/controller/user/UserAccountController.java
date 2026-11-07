@@ -1,4 +1,4 @@
-package com.projet3.datasharing.backend.controller;
+package com.projet3.datasharing.backend.controller.user;
 
 import java.util.Map;
 
@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.projet3.datasharing.backend.dto.UserAccountDTO;
-import com.projet3.datasharing.backend.service.UserAccountService;
+import com.projet3.datasharing.backend.dto.user.UserAccountDTO;
+import com.projet3.datasharing.backend.service.user.UserAccountService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

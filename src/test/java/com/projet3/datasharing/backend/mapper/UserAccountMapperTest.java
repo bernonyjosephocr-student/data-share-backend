@@ -8,8 +8,9 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
-import com.projet3.datasharing.backend.dto.UserAccountDTO;
+import com.projet3.datasharing.backend.dto.user.UserAccountDTO;
 import com.projet3.datasharing.backend.entity.UserAccount;
+import com.projet3.datasharing.backend.mapper.user.UserAccountMapper;
 
 class UserAccountMapperTest {
 

@@ -15,11 +15,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.projet3.datasharing.backend.dto.UserAccountDTO;
+import com.projet3.datasharing.backend.dto.user.UserAccountDTO;
 import com.projet3.datasharing.backend.entity.UserAccount;
 import com.projet3.datasharing.backend.exception.EmailAlreadyUsedException;
-import com.projet3.datasharing.backend.mapper.UserAccountMapper;
+import com.projet3.datasharing.backend.mapper.user.UserAccountMapper;
 import com.projet3.datasharing.backend.repository.UserAccountRepository;
+import com.projet3.datasharing.backend.service.user.UserAccountService;
 
 @ExtendWith(MockitoExtension.class)
 class UserAccountServiceTest {

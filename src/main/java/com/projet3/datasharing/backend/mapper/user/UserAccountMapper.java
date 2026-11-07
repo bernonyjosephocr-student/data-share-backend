@@ -1,9 +1,9 @@
-package com.projet3.datasharing.backend.mapper;
+package com.projet3.datasharing.backend.mapper.user;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.projet3.datasharing.backend.dto.UserAccountDTO;
+import com.projet3.datasharing.backend.dto.user.UserAccountDTO;
 import com.projet3.datasharing.backend.entity.UserAccount;
 
 @Mapper(componentModel = "spring")

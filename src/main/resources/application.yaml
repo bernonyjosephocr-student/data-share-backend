@@ -11,11 +11,16 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
-
   servlet:
     multipart:
-      max-file-size: 50MB
-      max-request-size: 55MB
+      max-file-size: 2GB
+      max-request-size: 2GB
+
+server:
+  tomcat:
+    max-swallow-size: -1
+    max-http-form-post-size: -1
+    connection-timeout: 600000 # 10 minutes
 
 security:
   jwt:
@@ -34,9 +39,10 @@ logging:
 file:
   upload-dir: ${FILE_UPLOAD_DIR:./local-file-store}
   retention-day: 7
+  max-file-size: 1GB
+  forbidden-extensions: exe,bat,cmd,sh
 storage:
   type: s3
-
 aws:
   s3:
     endpoint: http://localhost:9000

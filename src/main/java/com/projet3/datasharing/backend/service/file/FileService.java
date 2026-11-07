@@ -26,7 +26,7 @@ import com.projet3.datasharing.backend.mapper.file.FileMetadataMapper;
 import com.projet3.datasharing.backend.repository.UserAccountRepository;
 import com.projet3.datasharing.backend.repository.file.FileMetadataRepository;
 import com.projet3.datasharing.backend.service.JWTService;
-import com.projet3.datasharing.backend.service.StorageService;
+import com.projet3.datasharing.backend.service.storage.StorageService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class FileService {
 
-  private static final String AUTHENTICATED_USER_NOT_FOUND = "Authenticated user was not found.";
+  private static final String AUTHENTICATED_USER_NOT_FOUND = "Ce compte utilisateur n'existe pas.";
 
   private final Integer defaultRetentionDay;
 
@@ -70,13 +70,15 @@ public class FileService {
       MultipartFile file,
       UploadRequestDTO uploadRequestDTO,
       String userEmail) {
-    log.info("Starting file upload process for file: {}", file.getOriginalFilename());
+    log.info("Starting file upload process for file: {}, {}, {}", file.getOriginalFilename(), uploadRequestDTO,
+        userEmail);
+
     UserAccount userAccount = null;
     if (userEmail != null && !userEmail.isBlank()) {
       userAccount = userAccountRepository.findByEmail(userEmail)
           .orElseThrow(() -> new UsernameNotFoundException(AUTHENTICATED_USER_NOT_FOUND));
     }
-    log.debug("Request params are: {}, {}, {}", file.getOriginalFilename(), uploadRequestDTO, userEmail);
+
     LocalDateTime createdAt = LocalDateTime.now(ZoneOffset.UTC);
     int retentionDays = uploadRequestDTO.retentionDays() == null
         ? defaultRetentionDay
@@ -92,6 +94,7 @@ public class FileService {
     extraClaims.put("fileName", file.getOriginalFilename());
     extraClaims.put("fileSize", file.getSize());
     extraClaims.put("isPassReq", uploadRequestDTO.filePassword() != null && !uploadRequestDTO.filePassword().isBlank());
+
     // Reuse the token subject as the MinIO prefix for this upload.
     String downloadToken = jwtService.generateDownloadToken(
         uploadId,
@@ -133,6 +136,7 @@ public class FileService {
     UserAccount userAccount = userAccountRepository.findByEmail(eMail)
         .orElseThrow(() -> new UsernameNotFoundException(AUTHENTICATED_USER_NOT_FOUND));
     log.info("Fetching files for user: {}", userAccount.getEmail());
+    // Considering only non expired files
     List<FileMetadata> files = fileMetadataRepository.findByUserAccountAndExpiryDateAfter(userAccount,
         LocalDateTime.now());
 
@@ -143,19 +147,20 @@ public class FileService {
   public void deleteFile(String name, String fileId) {
     UserAccount userAccount = userAccountRepository.findByEmail(name)
         .orElseThrow(() -> new UsernameNotFoundException(AUTHENTICATED_USER_NOT_FOUND));
+
     log.info("Deleting file with ID: {} for user: {}", fileId, userAccount.getEmail());
+
     FileMetadata metadata = fileMetadataRepository.findById(Long.parseLong(fileId))
-        .orElseThrow(() -> new IllegalArgumentException("File metadata not found for ID: " + fileId));
+        .orElseThrow(() -> new IllegalArgumentException("Aucun fichier ne correspond à cet ID: " + fileId));
 
     if (!metadata.getUserAccount().getId().equals(userAccount.getId())) {
-      throw new SecurityException("User does not have permission to delete this file.");
+      throw new SecurityException("Le fichier n'est pas associé au compte utilisateur.");
     }
 
     // Delete the metadata from the database
     fileMetadataRepository.delete(metadata);
 
-    // Delete the file from storage Extract the uploadId from the download token and
-    // delete the file from storage
+    // Extract the uploadId from the download token and delete the file from storage
     String uploadId = jwtService.validateAndExtractDownloadSubject(metadata.getDownloadToken());
     storageService.delete(uploadId);
 
@@ -181,7 +186,7 @@ public class FileService {
 
     FileMetadata fileMetadata = fileMetadataRepository.findByDownloadToken(token)
         .orElseThrow(() -> new IllegalArgumentException(
-            "File metadata not found for the provided token."));
+            "Aucun fichier ne correspond au token fourni."));
 
     String encodedPassword = fileMetadata.getFilePassword();
 
@@ -190,11 +195,11 @@ public class FileService {
 
       if (filePassword == null || filePassword.isBlank()) {
         throw new SecurityException(
-            "This file is password protected. Please provide a valid password.");
+            "Ce fichier est protégé. Veuiller fournir le mot de passe associé.");
       }
 
       if (!passwordEncoder.matches(filePassword, encodedPassword)) {
-        throw new SecurityException("Invalid password for the requested file.");
+        throw new SecurityException("Mot de passe founi incorrect.");
       }
     }
 

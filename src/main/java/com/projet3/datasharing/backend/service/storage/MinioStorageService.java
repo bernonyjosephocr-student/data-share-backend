@@ -1,4 +1,4 @@
-package com.projet3.datasharing.backend.service;
+package com.projet3.datasharing.backend.service.storage;
 
 import java.io.IOException;
 import java.util.ArrayList;

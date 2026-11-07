@@ -6,6 +6,6 @@ import jakarta.validation.constraints.NotBlank;
  * DownloadReqDTO
  */
 public record DownloadRequestDTO(
-    @NotBlank String token,
-    String filePassword) {
+        @NotBlank(message = "Le token de téléchargement est requis.") String token,
+        String filePassword) {
 }
