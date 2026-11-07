@@ -1,5 +1,6 @@
 package com.projet3.datasharing.backend.repository.file;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,4 +13,8 @@ public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long
     public List<FileMetadata> findByUserAccount(UserAccount userAccount);
 
     public Optional<FileMetadata> findByDownloadToken(String token);
+
+    List<FileMetadata> findByUserAccountAndExpiryDateAfter(UserAccount userAccount, LocalDateTime now);
+
+    List<FileMetadata> findByExpiryDateLessThanEqual(LocalDateTime now);
 }

@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.projet3.datasharing.backend.dto.file.DownloadRequestDTO;
 import com.projet3.datasharing.backend.dto.file.DownloadResponseDTO;
 import com.projet3.datasharing.backend.dto.file.FileMetadataDTO;
+import com.projet3.datasharing.backend.dto.file.UploadRequestDTO;
 import com.projet3.datasharing.backend.entity.UserAccount;
 import com.projet3.datasharing.backend.entity.file.FileMetadata;
 import com.projet3.datasharing.backend.mapper.file.FileMetadataMapper;
@@ -67,7 +68,7 @@ public class FileService {
   @Transactional
   public String upload(
       MultipartFile file,
-      FileMetadataDTO fileMetadataDTO,
+      UploadRequestDTO uploadRequestDTO,
       String userEmail) {
     log.info("Starting file upload process for file: {}", file.getOriginalFilename());
     UserAccount userAccount = null;
@@ -75,11 +76,11 @@ public class FileService {
       userAccount = userAccountRepository.findByEmail(userEmail)
           .orElseThrow(() -> new UsernameNotFoundException(AUTHENTICATED_USER_NOT_FOUND));
     }
-    log.debug("Request params are: {}, {}, {}", file.getOriginalFilename(), fileMetadataDTO, userEmail);
+    log.debug("Request params are: {}, {}, {}", file.getOriginalFilename(), uploadRequestDTO, userEmail);
     LocalDateTime createdAt = LocalDateTime.now(ZoneOffset.UTC);
-    int retentionDays = fileMetadataDTO.retentionDays() == null
+    int retentionDays = uploadRequestDTO.retentionDays() == null
         ? defaultRetentionDay
-        : fileMetadataDTO.retentionDays();
+        : uploadRequestDTO.retentionDays();
 
     LocalDateTime expiryDate = createdAt.plusDays(retentionDays);
 
@@ -90,7 +91,7 @@ public class FileService {
     Map<String, Object> extraClaims = new HashMap<>();
     extraClaims.put("fileName", file.getOriginalFilename());
     extraClaims.put("fileSize", file.getSize());
-    extraClaims.put("isPassReq", fileMetadataDTO.filePassword() != null && !fileMetadataDTO.filePassword().isBlank());
+    extraClaims.put("isPassReq", uploadRequestDTO.filePassword() != null && !uploadRequestDTO.filePassword().isBlank());
     // Reuse the token subject as the MinIO prefix for this upload.
     String downloadToken = jwtService.generateDownloadToken(
         uploadId,
@@ -100,19 +101,23 @@ public class FileService {
     String filename = StringUtils.cleanPath(file.getOriginalFilename() == null
         ? ""
         : file.getOriginalFilename());
-    FileMetadata metadata = fileMetadataMapper.toEntity(fileMetadataDTO);
+
+    // Initialize the entity
+    FileMetadata metadata = new FileMetadata();
     metadata.setUserAccount(userAccount != null ? userAccount : null);
     metadata.setName(filename);
     metadata.setFileSize(Math.toIntExact(file.getSize()));
     metadata.setCreatedAt(createdAt);
     metadata.setExpiryDate(expiryDate);
     metadata.setDownloadToken(downloadToken);
-    log.debug("File password provided: {}", fileMetadataDTO.filePassword());
-    if (StringUtils.hasText(fileMetadataDTO.filePassword())) {
+    log.debug("File password provided: {}", uploadRequestDTO.filePassword());
+    if (StringUtils.hasText(uploadRequestDTO.filePassword())) {
       // Persist only the encoded password, never the submitted value.
-      metadata.setFilePassword(passwordEncoder.encode(fileMetadataDTO.filePassword()));
+      metadata.setFilePassword(passwordEncoder.encode(uploadRequestDTO.filePassword()));
       log.debug("Encoding file password for storage.{}", metadata.getFilePassword());
     }
+    metadata.setTags(uploadRequestDTO.tags());
+    metadata.setRetentionDays(uploadRequestDTO.retentionDays());
 
     log.debug("Persisting file metadata: {}", metadata.getName());
     fileMetadataRepository.save(metadata);
@@ -128,7 +133,8 @@ public class FileService {
     UserAccount userAccount = userAccountRepository.findByEmail(eMail)
         .orElseThrow(() -> new UsernameNotFoundException(AUTHENTICATED_USER_NOT_FOUND));
     log.info("Fetching files for user: {}", userAccount.getEmail());
-    List<FileMetadata> files = fileMetadataRepository.findByUserAccount(userAccount);
+    List<FileMetadata> files = fileMetadataRepository.findByUserAccountAndExpiryDateAfter(userAccount,
+        LocalDateTime.now());
 
     return fileMetadataMapper.toDtoList(files);
   }

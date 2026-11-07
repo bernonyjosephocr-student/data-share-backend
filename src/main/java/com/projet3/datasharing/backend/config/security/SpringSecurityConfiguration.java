@@ -76,6 +76,7 @@ public class SpringSecurityConfiguration {
             // No auth needed on :
             .requestMatchers("/actuator/**").permitAll()
             .requestMatchers("/api/auth/register", "/api/auth/login", "/api/files", "/api/files/download").permitAll()
+            .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
             // Others protected routes will be added here.
             .requestMatchers("/api/auth/files/**").authenticated()
             .anyRequest().authenticated())

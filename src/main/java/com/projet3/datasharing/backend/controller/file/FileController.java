@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,41 +26,30 @@ import org.springframework.web.server.ResponseStatusException;
 import com.projet3.datasharing.backend.dto.file.DownloadRequestDTO;
 import com.projet3.datasharing.backend.dto.file.DownloadResponseDTO;
 import com.projet3.datasharing.backend.dto.file.FileMetadataDTO;
+import com.projet3.datasharing.backend.dto.file.UploadRequestDTO;
 import com.projet3.datasharing.backend.service.file.FileService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class FileController {
   private final FileService fileService;
 
-  @PostMapping(path = "/api/auth/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @SecurityRequirement(name = "bearerAuth") // for swagger
+  @PostMapping(path = "/auth/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<Map<String, String>> uploadFile(
       @RequestPart("file") MultipartFile file,
-      @RequestPart("metadata") FileMetadataDTO fileMetadataDTO,
+      @RequestPart("metadata") UploadRequestDTO uploadRequestDTO,
       Principal principal) {
 
-    log.debug("Received file upload request from user: {}", principal.getName());
-    if (file == null || file.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file must not be empty.");
-    }
-
-    String filename = StringUtils.cleanPath(file.getOriginalFilename() == null
-        ? ""
-        : file.getOriginalFilename());
-    if (!StringUtils.hasText(filename)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file must have a filename.");
-    }
-    log.debug("Uploading file: {} with metadata: {}", filename, fileMetadataDTO);
-    if (file.getSize() > Integer.MAX_VALUE) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file is too large.");
-    }
-    String token = fileService.upload(file, fileMetadataDTO, principal.getName());
-    return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("downloadToken", token));
+    log.debug("Received authenticated file upload request from user: {}", principal.getName());
+    return processUpload(file, uploadRequestDTO, principal.getName());
   }
 
   /**
@@ -67,32 +57,16 @@ public class FileController {
    * intended for public uploads.
    * 
    * @param file
-   * @param fileMetadataDTO
+   * @param uploadRequestDTO
    * @return
    */
-  @PostMapping(path = "/api/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(path = "/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<Map<String, String>> uploadFile(
       @RequestPart("file") MultipartFile file,
-      @RequestPart("metadata") FileMetadataDTO fileMetadataDTO) {
+      @RequestPart("metadata") UploadRequestDTO uploadRequestDTO) {
 
     log.debug("Received file upload request without authentication.");
-    if (file == null || file.isEmpty()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file must not be empty.");
-    }
-
-    String filename = StringUtils.cleanPath(file.getOriginalFilename() == null
-        ? ""
-        : file.getOriginalFilename());
-    if (!StringUtils.hasText(filename)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file must have a filename.");
-    }
-
-    if (file.getSize() > Integer.MAX_VALUE) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file is too large.");
-    }
-    log.debug("Uploading file: {} with metadata: {}", file.getOriginalFilename(), fileMetadataDTO);
-    String token = fileService.upload(file, fileMetadataDTO, null);
-    return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("downloadToken", token));
+    return processUpload(file, uploadRequestDTO, null);
   }
 
   /**
@@ -101,7 +75,8 @@ public class FileController {
    * @param principal
    * @return
    */
-  @GetMapping("/api/auth/files")
+  @SecurityRequirement(name = "bearerAuth") // for swagger
+  @GetMapping("/auth/files")
   public ResponseEntity<List<FileMetadataDTO>> getFiles(Principal principal) {
     log.debug("Fetching files for authenticated user: {}", principal.getName());
     List<FileMetadataDTO> files = fileService.getFiles(principal.getName());
@@ -115,7 +90,8 @@ public class FileController {
    * @param fileId
    * @return
    */
-  @DeleteMapping("api/auth/files/{fileId}")
+  @SecurityRequirement(name = "bearerAuth") // for swagger
+  @DeleteMapping("/auth/files/{fileId}")
   public ResponseEntity<Void> deleteFile(Principal principal, @PathVariable String fileId) {
     log.debug("Deleting file for authenticated user: {}", principal.getName());
     fileService.deleteFile(principal.getName(), fileId);
@@ -128,7 +104,7 @@ public class FileController {
    * @param downloadRequestDTO
    * @return
    */
-  @PostMapping(path = "/api/files/download", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(path = "/files/download", consumes = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Resource> downloadFile(
       @Valid @RequestBody DownloadRequestDTO downloadRequestDTO) {
 
@@ -148,4 +124,40 @@ public class FileController {
         .body(response.resource());
   }
 
+  /**
+   * 
+   * @param file
+   * @param uploadRequestDTO
+   * @param username
+   * @return
+   */
+
+  private ResponseEntity<Map<String, String>> processUpload(
+      MultipartFile file,
+      UploadRequestDTO uploadRequestDTO,
+      String username) {
+
+    String filename = validateAndExtractFilename(file);
+    log.debug("Uploading file: {} with metadata: {} for owner: {}", filename, uploadRequestDTO, username);
+
+    String token = fileService.upload(file, uploadRequestDTO, username);
+    return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("downloadToken", token));
+  }
+
+  private String validateAndExtractFilename(MultipartFile file) {
+    if (file == null || file.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file must not be empty.");
+    }
+
+    if (file.getSize() > Integer.MAX_VALUE) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file is too large.");
+    }
+
+    String filename = StringUtils.cleanPath(file.getOriginalFilename() == null ? "" : file.getOriginalFilename());
+    if (!StringUtils.hasText(filename)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The uploaded file must have a filename.");
+    }
+
+    return filename;
+  }
 }

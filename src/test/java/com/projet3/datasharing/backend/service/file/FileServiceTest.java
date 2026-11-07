@@ -24,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
-import com.projet3.datasharing.backend.dto.file.FileMetadataDTO;
+import com.projet3.datasharing.backend.dto.file.UploadRequestDTO;
 import com.projet3.datasharing.backend.entity.UserAccount;
 import com.projet3.datasharing.backend.entity.file.FileMetadata;
 import com.projet3.datasharing.backend.mapper.file.FileMetadataMapper;
@@ -86,8 +86,9 @@ class FileServiceTest {
         when(fileMetadataRepository.save(any(FileMetadata.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        FileMetadataDTO request = new FileMetadataDTO(null, null, "reports", null, null, false, 3, null, null);
-
+        // FileMetadataDTO request = new FileMetadataDTO(null, null, "reports", null,
+        // null, false, 3, null, null);
+        UploadRequestDTO request = new UploadRequestDTO(null, "reports", 3);
         String token = fileService.upload(file, request, USER_EMAIL);
 
         assertEquals("download-token", token);
@@ -130,8 +131,7 @@ class FileServiceTest {
         when(fileMetadataRepository.save(any(FileMetadata.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        FileMetadataDTO request = new FileMetadataDTO(null, null, null, null, null, false, null, null, null);
-
+        UploadRequestDTO request = new UploadRequestDTO(null, null, null);
         fileService.upload(file, request, USER_EMAIL);
 
         ArgumentCaptor<FileMetadata> metadataCaptor = ArgumentCaptor.forClass(FileMetadata.class);

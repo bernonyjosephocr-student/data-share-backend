@@ -1,5 +1,7 @@
 package com.projet3.datasharing.backend.handler;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,12 +14,13 @@ import com.projet3.datasharing.backend.exception.EmailAlreadyUsedException;
 public class GlobalRestExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Void> handleBadCredentials(BadCredentialsException exception) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    public ResponseEntity<Map<String, String>> handleBadCredentials(BadCredentialsException exception) {
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", exception.getMessage()));
     }
 
     @ExceptionHandler(EmailAlreadyUsedException.class)
-    public ResponseEntity<Void> handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    public ResponseEntity<Map<String, String>> handleEmailAlreadyUsed(EmailAlreadyUsedException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", exception.getMessage()));
     }
 }
