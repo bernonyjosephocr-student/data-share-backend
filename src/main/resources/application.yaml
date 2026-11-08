@@ -43,6 +43,9 @@ file:
   forbidden-extensions: exe,bat,cmd,sh
 storage:
   type: s3
+  cleanup:
+    #cron: "0 0 * * * *"
+    cron: "0 */5 * * * *"
 aws:
   s3:
     endpoint: http://localhost:9000
@@ -50,3 +53,4 @@ aws:
     access-key: minioadmin
     secret-key: minioadmin
     region: us-east-1
+

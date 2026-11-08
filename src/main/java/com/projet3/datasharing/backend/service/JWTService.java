@@ -83,15 +83,7 @@ public class JWTService {
      */
     public String validateAndExtractSubject(String token) {
         JsonNode payload = parseAndValidateToken(token);
-        String subject = payload.path("sub").asText(); // .asText() est plus sûr que .asString() selon la version de
-                                                       // Jackson
-
-        JsonNode expiration = payload.get("exp");
-        if (subject.isBlank() || expiration == null || !expiration.isNumber()
-                || expiration.doubleValue() <= Instant.now().toEpochMilli() / 1000.0) {
-            throw new IllegalArgumentException("JWT subject is missing or the token has expired");
-        }
-        return subject;
+        return getSubjectIfNotExpired(payload);
     }
 
     /**
@@ -108,7 +100,34 @@ public class JWTService {
             throw new IllegalArgumentException("Invalid token action context");
         }
 
-        return validateAndExtractSubject(token);
+        return getSubjectIfNotExpired(payload);
+    }
+
+    /**
+     * Extracts the subject from an expired token
+     * 
+     * @return
+     */
+    public String validateAndExtractExpiredTokenSubject(String token) {
+        JsonNode payload = parseAndValidateToken(token);
+
+        // it is expected to be DOWNLOAD
+        String action = payload.path("action").asString();
+        if (!"DOWNLOAD".equals(action)) {
+            throw new IllegalArgumentException("Invalid token action context");
+        }
+        return payload.path("sub").asText();
+    }
+
+    private String getSubjectIfNotExpired(JsonNode payload) {
+        String subject = payload.path("sub").asText();
+
+        JsonNode expiration = payload.get("exp");
+        if (subject.isBlank() || expiration == null || !expiration.isNumber()
+                || expiration.doubleValue() <= Instant.now().toEpochMilli() / 1000.0) {
+            throw new IllegalArgumentException("JWT subject is missing or the token has expired");
+        }
+        return subject;
     }
 
     /**

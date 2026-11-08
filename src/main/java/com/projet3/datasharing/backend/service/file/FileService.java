@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -34,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @Service
 public class FileService {
+
+  private static final Logger cronLog = LoggerFactory.getLogger("CRON");
 
   private static final String AUTHENTICATED_USER_NOT_FOUND = "Ce compte utilisateur n'existe pas.";
 
@@ -216,4 +220,32 @@ public class FileService {
         resourceFiles.get(0).getFilename(),
         resourceFiles.get(0));
   }
+
+  @Transactional
+  public void deleteExpiredFiles() {
+
+    List<FileMetadata> expiredFiles = fileMetadataRepository.findByExpiryDateLessThanEqual(LocalDateTime.now());
+
+    cronLog.info("{} expired file(s) found.", expiredFiles.size());
+
+    for (FileMetadata file : expiredFiles) {
+      try {
+
+        String uploadId = jwtService.validateAndExtractExpiredTokenSubject(file.getDownloadToken());
+        // Let's keep metadata and minio consistent. If there is an issue, none of them
+        // is deleted.
+        if (uploadId != null && !uploadId.isBlank()) {
+          // Delete metadata from PostgreSQL
+          fileMetadataRepository.delete(file);
+          // Delete associated objects from MinIO
+          storageService.delete(uploadId);
+        }
+        cronLog.info("Expired file {} successfully deleted.", file.getId());
+
+      } catch (Exception e) {
+        cronLog.error("Failed to delete expired file {}. Skipping to next file.", file.getId(), e);
+      }
+    }
+  }
+
 }
