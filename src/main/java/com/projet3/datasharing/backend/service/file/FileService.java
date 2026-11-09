@@ -141,8 +141,7 @@ public class FileService {
         .orElseThrow(() -> new UsernameNotFoundException(AUTHENTICATED_USER_NOT_FOUND));
     log.info("Fetching files for user: {}", userAccount.getEmail());
     // Considering only non expired files
-    List<FileMetadata> files = fileMetadataRepository.findByUserAccountAndExpiryDateAfter(userAccount,
-        LocalDateTime.now());
+    List<FileMetadata> files = fileMetadataRepository.findByUserAccount(userAccount);
 
     return fileMetadataMapper.toDtoList(files);
   }
@@ -165,7 +164,7 @@ public class FileService {
     fileMetadataRepository.delete(metadata);
 
     // Extract the uploadId from the download token and delete the file from storage
-    String uploadId = jwtService.validateAndExtractDownloadSubject(metadata.getDownloadToken());
+    String uploadId = jwtService.validateAndExtractExpiredOrNotTokenSubject(metadata.getDownloadToken());
     storageService.delete(uploadId);
 
     log.info("File with ID: {} and Folder: {}deleted successfully for user: {}", fileId, uploadId,
@@ -231,7 +230,7 @@ public class FileService {
     for (FileMetadata file : expiredFiles) {
       try {
 
-        String uploadId = jwtService.validateAndExtractExpiredTokenSubject(file.getDownloadToken());
+        String uploadId = jwtService.validateAndExtractExpiredOrNotTokenSubject(file.getDownloadToken());
         // Let's keep metadata and minio consistent. If there is an issue, none of them
         // is deleted.
         if (uploadId != null && !uploadId.isBlank()) {

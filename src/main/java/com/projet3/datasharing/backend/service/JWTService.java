@@ -87,6 +87,7 @@ public class JWTService {
     }
 
     /**
+     * Extract the subject token if taht token is valid and not expired.
      * 
      * @param token
      * @return
@@ -104,11 +105,11 @@ public class JWTService {
     }
 
     /**
-     * Extracts the subject from an expired token
+     * Extracts the subject from a token expired or not
      * 
      * @return
      */
-    public String validateAndExtractExpiredTokenSubject(String token) {
+    public String validateAndExtractExpiredOrNotTokenSubject(String token) {
         JsonNode payload = parseAndValidateToken(token);
 
         // it is expected to be DOWNLOAD
