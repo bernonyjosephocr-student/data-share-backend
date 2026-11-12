@@ -32,8 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
-### resource for github copilot
+### other
 .github/
 resources/
 dossier-serveur/
 /logs
+.env
