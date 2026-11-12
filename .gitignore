@@ -36,3 +36,4 @@ build/
 .github/
 resources/
 dossier-serveur/
+/logs

@@ -129,7 +129,7 @@ public class FileService {
     log.debug("Persisting file metadata: {}", metadata.getName());
     fileMetadataRepository.save(metadata);
 
-    log.debug("Saving file {} content into S3", metadata.getName());
+    log.debug("Saving file {} content into S3 with the ID {}", metadata.getName(), uploadId);
     storageService.store(List.of(file), uploadId);
 
     log.info("File uploaded successfully: {}", file.getOriginalFilename());
@@ -214,9 +214,9 @@ public class FileService {
     if (resourceFiles.isEmpty()) {
       throw new IllegalArgumentException("File not found for the provided token.");
     }
-
+    log.debug("Resource file name is {} AND uuid IS {}", resourceFiles.get(0).getFilename(), uploadId);
     return new DownloadResponseDTO(
-        resourceFiles.get(0).getFilename(),
+        resourceFiles.get(0).getDescription(),
         resourceFiles.get(0));
   }
 

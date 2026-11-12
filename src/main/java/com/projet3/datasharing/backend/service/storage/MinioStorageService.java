@@ -114,7 +114,8 @@ public class MinioStorageService implements StorageService {
             .key(s3Object.key())
             .build();
 
-        resources.add(new InputStreamResource(s3Client.getObject(getObjectRequest)));
+        resources.add(new InputStreamResource(s3Client.getObject(getObjectRequest),
+            s3Object.key().substring(uploadId.length() + 1))); // Put the file name in the description temporarily
       }
 
       if (resources.isEmpty()) {

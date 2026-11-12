@@ -46,25 +46,6 @@ public class SpringSecurityConfiguration {
     return new BCryptPasswordEncoder();
   }
 
-  /*
-   * @Bean
-   * SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-   * return http
-   * .csrf(csrf -> csrf.ignoringRequestMatchers("/api/auth/register",
-   * "/api/auth/login"))
-   * .formLogin(AbstractHttpConfigurer::disable)
-   * .httpBasic(AbstractHttpConfigurer::disable)
-   * .authorizeHttpRequests(authorize -> authorize
-   * .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-   * .anyRequest().authenticated())
-   * .exceptionHandling(exceptionHandling -> exceptionHandling
-   * .authenticationEntryPoint(unauthorizedEntryPoint()))
-   * .addFilterBefore(jwtAuthenticationFilter,
-   * UsernamePasswordAuthenticationFilter.class)
-   * .build();
-   * }
-   */
-
   @Bean
   SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.cors(Customizer.withDefaults())
