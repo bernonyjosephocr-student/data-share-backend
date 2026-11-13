@@ -1,27 +1,34 @@
 services:
   postgres-db:
-    image: 'postgres:18'
+    image: postgres:18
     container_name: file_sharing_db
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:?DB_USER is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_DB: ${DB_NAME:?DB_NAME is required}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   minio:
-    image: 'cgr.dev/chainguard/minio:latest'
+    image: cgr.dev/chainguard/minio:latest
     container_name: file_sharing_storage
-    ports:
-      - "9000:9000" # Port API for Spring Boot
-      - "9001:9001" # Port Console Web for admin
+    restart: unless-stopped
     environment:
-      MINIO_ROOT_USER: minioadmin      # Équivalent of the Access Key AWS
-      MINIO_ROOT_PASSWORD: minioadmin  # Équivalent of the Secret Key AWS
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     volumes:
-      # Physical folder to not loose the files
       - ./dossier-serveur:/data
     command: server /data --console-address ":9001"
 

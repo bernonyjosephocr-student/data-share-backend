@@ -25,7 +25,7 @@ server:
 security:
   jwt:
     # Provide a Base64-encoded random key of at least 32 bytes; keep it outside source control.
-    secret-base64: ${JWT_SECRET_BASE64:V8etWJY19CdNrdHAH4HTjMm5xtQw8cO0j9/ctP1bxUo=}
+    secret-base64: ${JWT_SECRET_BASE64}
     # Token lifetime in milliseconds (one hour by default).
     expiration-ms: ${JWT_EXPIRATION_MS:900000}
 
@@ -37,7 +37,6 @@ logging:
     org.hibernate.orm.jdbc.bind: TRACE
 
 file:
-  upload-dir: ${FILE_UPLOAD_DIR:./local-file-store}
   retention-day: 7
   max-file-size: 1GB
   forbidden-extensions: exe,bat,cmd,sh
@@ -46,11 +45,12 @@ storage:
   cleanup:
     #cron: "0 0 * * * *"
     cron: "0 */5 * * * *"
+
 aws:
   s3:
-    endpoint: http://localhost:9000
-    bucket-name: my-shared-bucket
-    access-key: minioadmin
-    secret-key: minioadmin
-    region: us-east-1
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    bucket-name: ${MINIO_BUCKET:my-shared-bucket}
+    access-key: ${MINIO_ACCESS_KEY}
+    secret-key: ${MINIO_SECRET_KEY}
+    region: ${MINIO_REGION:us-east-1}
 
