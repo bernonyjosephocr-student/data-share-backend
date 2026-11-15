@@ -166,6 +166,11 @@ Après avoir chargé les variables d'environnement, démarrer Spring Boot :
 ```bash
 mvn spring-boot:run
 ```
+Pour éviter tout oubli:
+
+```bash
+set -a; source .env; set +a; mvn spring-boot:run
+```
 
 Cette commande :
 1. Démarre l'application Spring Boot.

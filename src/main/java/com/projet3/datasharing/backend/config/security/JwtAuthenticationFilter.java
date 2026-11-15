@@ -1,27 +1,23 @@
 package com.projet3.datasharing.backend.config.security;
 
+import com.projet3.datasharing.backend.config.logging.LogKeys;
+import com.projet3.datasharing.backend.repository.UserAccountRepository;
+import com.projet3.datasharing.backend.service.JWTService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.projet3.datasharing.backend.repository.UserAccountRepository;
-import com.projet3.datasharing.backend.service.JWTService;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-/**
- * Authentifie les requêtes présentant un JWT Bearer valide.
- */
+/** Authentifie les requêtes présentant un JWT Bearer valide. */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -34,21 +30,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      FilterChain filterChain) throws ServletException, IOException {
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
     String authorization = request.getHeader("Authorization");
 
-    log.debug("Authorization header present: {}", authorization != null);
     if (authorization == null || !authorization.startsWith(BEARER_PREFIX)) {
-      log.info("No Bearer token found in the request, proceeding without authentication.");
+      log.atDebug()
+          .addKeyValue(LogKeys.EVENT, "jwt_authentication_filter")
+          .addKeyValue(LogKeys.USER_ID, "no_user_required")
+          .log("No Bearer token found in the request, proceeding without authentication.");
       filterChain.doFilter(request, response);
       return;
     }
 
     String subject;
     try {
-      subject = jwtService.validateAndExtractSubject(authorization.substring(BEARER_PREFIX.length()));
+      subject =
+          jwtService.validateAndExtractSubject(authorization.substring(BEARER_PREFIX.length()));
     } catch (IllegalArgumentException exception) {
       SecurityContextHolder.clearContext();
       response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid bearer token");
@@ -60,8 +58,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-    UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(subject,
-        null, List.of());
+    UsernamePasswordAuthenticationToken authentication =
+        UsernamePasswordAuthenticationToken.authenticated(subject, null, List.of());
     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
     SecurityContextHolder.getContext().setAuthentication(authentication);
     filterChain.doFilter(request, response);

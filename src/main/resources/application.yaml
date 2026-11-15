@@ -31,10 +31,18 @@ security:
 
 logging:
   level:
-    root: INFO
-    com.projet3.datasharing.backend: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.orm.jdbc.bind: TRACE
+    root: ${LOG_LEVEL:INFO}
+    com.projet3.datasharing.backend: ${APP_LOG_LEVEL:DEBUG}
+    org.hibernate.SQL: ${HIBERNATE_LOG_LEVEL:DEBUG}
+    org.hibernate.orm.jdbc.bind: ${HIBERNATE_BIND_LOG_LEVEL:TRACE}
+  structured:
+    format: #JSON ECS activation
+      console: ecs
+      file: ecs
+    ecs:
+      service:
+        name: datashare-backend
+        environment: ${SPRING_PROFILES_ACTIVE:development}
 
 file:
   retention-day: 7
@@ -43,8 +51,8 @@ file:
 storage:
   type: s3
   cleanup:
-    #cron: "0 0 * * * *"
-    cron: "0 */5 * * * *"
+    #cron: "0 */5 * * * *"
+    cron: ${CRON_EXPIRED_FILES_CLEANUP:0 */5 * * * *}
 
 aws:
   s3:
