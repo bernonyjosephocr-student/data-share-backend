@@ -2,6 +2,7 @@ package com.projet3.datasharing.backend.handler;
 
 import com.projet3.datasharing.backend.config.logging.LogKeys;
 import com.projet3.datasharing.backend.exception.EmailAlreadyUsedException;
+import java.io.FileNotFoundException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -138,7 +139,20 @@ public class GlobalRestExceptionHandler {
         .log("Unhandled exception while processing request");
 
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(Map.of(LogKeys.MESSAGE, "An unexpected error occurred"));
+        .body(Map.of(LogKeys.MESSAGE, ex.getMessage()));
+  }
+
+  @ExceptionHandler(FileNotFoundException.class)
+  public ResponseEntity<Map<String, String>> handleFileNotFoundException(Exception ex) {
+
+    log.atError()
+        .addKeyValue(LogKeys.EVENT, "retrieve_file_processing_failed")
+        .addKeyValue(LogKeys.ERROR_TYPE, ex.getClass().getSimpleName())
+        .setCause(ex)
+        .log(ex.getMessage());
+
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(Map.of(LogKeys.MESSAGE, ex.getMessage()));
   }
 
   @ExceptionHandler(NoResourceFoundException.class)

@@ -1,20 +1,19 @@
 package com.projet3.datasharing.backend.repository.file;
 
+import com.projet3.datasharing.backend.entity.UserAccount;
+import com.projet3.datasharing.backend.entity.file.FileMetadata;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.projet3.datasharing.backend.entity.UserAccount;
-import com.projet3.datasharing.backend.entity.file.FileMetadata;
-
 public interface FileMetadataRepository extends JpaRepository<FileMetadata, Long> {
-    public List<FileMetadata> findByUserAccount(UserAccount userAccount);
+  public List<FileMetadata> findByUserAccount(UserAccount userAccount);
 
-    public Optional<FileMetadata> findByDownloadToken(String token);
+  public Optional<FileMetadata> findByDownloadToken(String token);
 
-    List<FileMetadata> findByUserAccountAndExpiryDateAfter(UserAccount userAccount, LocalDateTime now);
+  List<FileMetadata> findByUserAccountAndExpiryDateAfter(
+      UserAccount userAccount, LocalDateTime now);
 
-    List<FileMetadata> findByExpiryDateLessThanEqual(LocalDateTime now);
+  List<FileMetadata> findByExpiryDateLessThanEqual(LocalDateTime now);
 }

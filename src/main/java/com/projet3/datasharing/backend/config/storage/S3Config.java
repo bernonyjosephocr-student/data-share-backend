@@ -1,11 +1,9 @@
 package com.projet3.datasharing.backend.config.storage;
 
 import java.net.URI;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -30,10 +28,10 @@ public class S3Config {
   S3Client s3Client() {
     return S3Client.builder()
         .endpointOverride(URI.create(endpoint)) // Force the connection to MinIO
-        .credentialsProvider(StaticCredentialsProvider.create(
-            AwsBasicCredentials.create(accessKey, secretKey)))
+        .credentialsProvider(
+            StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
         .region(Region.of(region))
-        .forcePathStyle(true) // Requied for MinIO in order to handle local URLs.
+        .forcePathStyle(true) // Required for MinIO in order to handle local URLs.
         .build();
   }
 }
