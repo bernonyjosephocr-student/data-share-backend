@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** Authentifie les requêtes présentant un JWT Bearer valide. */
+/** Authenticate the queries presenting a JWT Bearer. */
 @Slf4j
 @Component
 @RequiredArgsConstructor

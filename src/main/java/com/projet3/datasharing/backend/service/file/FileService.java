@@ -7,6 +7,7 @@ import com.projet3.datasharing.backend.dto.file.FileMetadataDTO;
 import com.projet3.datasharing.backend.dto.file.UploadRequestDTO;
 import com.projet3.datasharing.backend.entity.UserAccount;
 import com.projet3.datasharing.backend.entity.file.FileMetadata;
+import com.projet3.datasharing.backend.exception.FileNotFoundException;
 import com.projet3.datasharing.backend.mapper.file.FileMetadataMapper;
 import com.projet3.datasharing.backend.repository.UserAccountRepository;
 import com.projet3.datasharing.backend.repository.file.FileMetadataRepository;
@@ -186,8 +187,8 @@ public class FileService {
     FileMetadata metadata =
         fileMetadataRepository
             .findById(Long.parseLong(fileId))
-            .orElseThrow(() ->
-                new IllegalArgumentException("Aucun fichier ne correspond à cet ID: " + fileId));
+            .orElseThrow(
+                () -> new FileNotFoundException("Aucun fichier ne correspond à cet ID: " + fileId));
 
     if (!metadata.getUserAccount().getId().equals(userAccount.getId())) {
       throw new SecurityException("Le fichier n'est pas associé au compte utilisateur.");

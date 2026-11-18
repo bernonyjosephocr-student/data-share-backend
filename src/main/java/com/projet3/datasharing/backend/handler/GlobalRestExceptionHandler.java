@@ -59,7 +59,7 @@ public class GlobalRestExceptionHandler {
         .setCause(exception)
         .log(" Exception while processing a user file operation");
 
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
         .body(Map.of(LogKeys.MESSAGE, exception.getMessage()));
   }
 
@@ -111,7 +111,7 @@ public class GlobalRestExceptionHandler {
         .setCause(exception)
         .log(" Exception while processing security filtering on request");
 
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+    return ResponseEntity.status(HttpStatus.FORBIDDEN)
         .body(Map.of(LogKeys.MESSAGE, exception.getMessage()));
   }
 
