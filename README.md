@@ -59,7 +59,7 @@ cd data-share-backend
 
 ### 4.2. Configuration des variables d'environnement
 
-Créer un fichier `.env` à la racine du backend, au même niveau que `compose.yaml`.
+Créer un fichier `.env` à la racine du backend, au même niveau que `compose.yaml`, Mofidier le fichier .env avec le contenu du fichier .env.example et configurer les mots de passe(le valeurs commençant par change_me).
 
 Exemple :
 
@@ -86,9 +86,8 @@ MINIO_REGION=us-east-1
 JWT_SECRET_BASE64=REMPLACER_PAR_UNE_CLE_ALEATOIRE
 JWT_EXPIRATION_MS=900000
 
-# Stockage local éventuel
-FILE_UPLOAD_DIR=./local-file-store
-```
+# SECURITY
+CORS_ALLOWED_ORIGINS=http://localhost:4200
 
 #### Génération de la clé JWT
 
@@ -202,11 +201,15 @@ Docker doit être opérationnel pour exécuter ces tests.
 
 ### Exécution des tests
 
+Il est requis que docker soit démarré.
+
 ```bash
 mvn test
 ```
 
 ### Tests avec génération du rapport de couverture
+
+Il est requis que docker soit démarré.
 
 ```bash
 mvn clean test
@@ -293,11 +296,3 @@ docker compose down
 ```
 
 Cette commande arrête les conteneurs sans supprimer les données persistées.
-
-Pour supprimer également le volume PostgreSQL :
-
-```bash
-docker compose down -v
-```
-
-Attention : cette dernière commande entraîne la suppression des données PostgreSQL.

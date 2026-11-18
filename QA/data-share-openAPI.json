@@ -1,0 +1,382 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API de Plateforme de Partage de Fichiers",
+    "description": "Contrat d'interface (Front-End <-> Back-End) incluant les uploads authentifiés et anonymes, la gestion des utilisateurs, la protection par mot de passe et la durée de validité personnalisable (max 7 jours).",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/api",
+      "description": ""
+    }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Inscription d'un nouvel utilisateur",
+        "description": "Permet à un utilisateur de créer un compte.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": "securePassword123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Utilisateur créé avec succès."
+          },
+          "400": {
+            "description": "Données invalides ou email déjà utilisé."
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Connexion de l'utilisateur",
+        "description": "Authentifie l'utilisateur et retourne un token JWT de session.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentification réussie. Retourne le jeton.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Identifiants incorrects."
+          }
+        }
+      }
+    },
+    "/files": {
+      "post": {
+        "summary": "Téléverser un fichier de manière anonyme",
+        "description": "Permet à un utilisateur non connecté de déposer un fichier, avec option de mot de passe et durée de rétention.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Le fichier physique à uploader."
+                  },
+                  "file_password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Optionnel. Mot de passe pour protéger le téléchargement du fichier."
+                  },
+                  "retention_days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7,
+                    "default": 7,
+                    "description": "Durée de validité du fichier en jours (Maximum 7 jours. Par défaut si non saisi : 7)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Fichier téléversé avec succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requête invalide (ex: retention_days supérieur à 7)."
+          }
+        }
+      }
+    },
+    "/auth/files": {
+      "get": {
+        "summary": "Liste des fichiers de l'utilisateur connecté",
+        "description": "Récupère uniquement les fichiers appartenant à l'utilisateur identifié par le JWT.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des fichiers récupérée avec succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileMetaDataDTO"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non authentifié."
+          }
+        }
+      },
+      "post": {
+        "summary": "Téléverser un fichier en étant connecté",
+        "description": "Téléverse un fichier et l'associe obligatoirement à l'utilisateur connecté via le Bearer Token.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "file_password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Optionnel. Mot de passe pour protéger le fichier."
+                  },
+                  "tags": {
+                    "type": "string",
+                     "description": "Optionnel. Liste de tags pour catégoriser le fichier (ex: facture, important)."
+                    },                  
+                  "retention_days": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 7,
+                    "default": 7,
+                    "description": "Durée de validité du fichier en jours (Maximum 7 jours. Par défaut si non saisi : 7)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Fichier téléversé et associé à l'utilisateur.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requête invalide (ex: retention_days supérieur à 7)."
+          },
+          "401": {
+            "description": "Non authentifié (Token manquant ou expiré)."
+          }
+        }
+      }
+    },
+    "/auth/files/{id}": {
+      "delete": {
+        "summary": "Supprimer un fichier possédéd'un utilisateur connecté",
+        "description": "Supprime définitivement le fichier physique et ses métadonnées. Le serveur vérifie que le fichier appartient bien à l'utilisateur connecté. Si mot de passe, le serveur vérifie également que le mot de passe fourni correspond à celui du fichier.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID du fichier à supprimer.",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Fichier supprimé avec succès."
+          },
+          "403": {
+            "description": "Accès interdit (Le fichier ne vous appartient pas)."
+          },
+          "404": {
+            "description": "Fichier introuvable."
+          }
+        }
+      }
+    },
+    "/files/download": {
+      "post": {
+        "summary": "Télécharger un fichier de manière sécurisée",
+        "description": "Permet de demander le flux binaire en passant le jeton et le mot de passe dans le corps de la requête, évitant ainsi d'exposer le mot de passe dans l'URL.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "Le token de downloading."
+                  },
+                  "file_password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Optionnel. Requis uniquement si le fichier est protégé."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Flux binaire du fichier.",
+            "content": {
+              "application/octet-stream": {}
+            }
+          },
+          "403": {
+            "description": "Mot de passe incorrect ou manquant."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "UploadResponse": {
+        "type": "object",
+        "properties": { 
+          "downloadToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9mNC0yNjljLTQ2ODMtYWU2..."
+          }
+        }
+      },
+      "FileMetaDataDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1024
+          },
+          "name": {
+            "type": "string",
+            "example": "rapport_projet.pdf"
+          },
+          "tags": {
+            "type": "string",
+            "example": "universite, dev, backend"
+          },
+          "fileSize": {
+            "type": "integer",
+            "example": 22
+          },
+          "expiryDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-10-31"
+          },
+          "isPasswordProtected": {
+            "type": "boolean",
+            "example": true
+          },
+          "downloadToken": {
+            "type": "string",
+            "example": "frhffdlridf.jUUUUXXXVVVEDµEg.f5dfefdkrejfdhfkjeh"
+          }
+        }
+      }
+    }
+  }
+}

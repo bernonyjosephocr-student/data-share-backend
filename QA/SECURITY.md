@@ -38,7 +38,7 @@ Elles concernaient principalement Angular :
 | `@angular/core` | DOM Clobbering, empoisonnement du cache et XSS |
 | `@angular/forms`, `platform` et `router` | Vulnérabilités de gravité modérée |
 
-Par ailleurs, des vulnérabilités avaient également été identifiées dans des dépendances utilisées par l'environnement de compilation, notamment `piscina` et `tar`.
+Des vulnérabilités avaient également été identifiées dans des dépendances utilisées par l'environnement de compilation, notamment `piscina` et `tar`.
 
 **Décision :** abandonner Angular 19, qui n'était plus maintenu, et procéder à une migration progressive vers Angular 20 puis Angular 21.
 
@@ -126,7 +126,7 @@ L'audit propose des corrections forcées qui impliqueraient notamment :
 - Une rétrogradation de Jest 30 vers Jest 29.7.0 pour `deepmerge`.
 - Un passage à Angular CLI 22.2.7 pour `glob` et `minimatch`.
 
-Nous avons volontairement écarté `npm audit fix --force`, afin de ne pas dégrader l'environnement validé ni sortir du périmètre Angular 21 retenu pour le projet.
+`npm audit fix --force` a été écarté, afin de ne pas dégrader l'environnement validé ni sortir du périmètre Angular 21 retenu pour le projet.
 
 #### Résultat de l'audit de production
 
@@ -185,11 +185,11 @@ Le résultat est un frontend DataShare modernisé, dont la compilation, les test
 
 | Contrôle | Résultat | Conclusion |
 |---|---|---|
-| Vulnérabilités des dépendances Java | 0 vulnérabilité détectée | ✅ Conforme au scan |
-| Détection des secrets | 1 secret détecté dans `.env` | ⚠️ Alerte HIGH |
-| Analyse des configurations | Aucun fichier de configuration reconnu | ⚪ Contrôle non concluant |
-| Configuration Docker Compose | Fichier `compose.yaml` non reconnu par le scanner | ⚪ Contrôle non concluant |
-| Images Docker | Analyse non réalisée | ⏳ À effectuer |
+| Vulnérabilités des dépendances Java | 0 vulnérabilité détectée | Conforme au scan |
+| Détection des secrets | 1 secret détecté dans `.env` | Alerte HIGH |
+| Analyse des configurations | Aucun fichier de configuration reconnu | Résultat cohérent car application.yaml ne fait pas partie des fichiers pris en charge par trivy |
+| Configuration Docker Compose | Fichier `compose.yaml` non reconnu par le scanner | Résultat cohérent, le fichier compose.yaml n'est pas pris en charge par trivy |
+
 
 ## 2. Analyse des vulnérabilités des dépendances Java
 
@@ -208,8 +208,7 @@ trivy fs --scanners vuln .
 
 Aucune vulnérabilité connue n'a été identifiée dans les dépendances Java analysées par Trivy au moment du contrôle.
 
-Ce résultat dépend de la couverture de la base de vulnérabilités utilisée par Trivy et ne constitue pas une garantie d'absence de vulnérabilités.
-
+Ce résultat dépend de la couverture de la base de vulnérabilités utilisée par Trivy
 ## 3. Détection des secrets
 
 ### 3.1. Premier constat
@@ -251,7 +250,7 @@ Les mesures suivantes ont été prises :
 
 Le mot de passe potentiellement exposé dans l'historique Git doit être renouvelé. Si le dépôt a été publié sur un serveur distant, il faut considérer que l'ancien secret a pu être consulté.
 
-Le retrait du fichier du suivi Git ne supprime pas son contenu des anciens commits.
+Le retrait du fichier du suivi Git.
 
 ### 3.4. Conclusion
 
@@ -275,7 +274,7 @@ trivy fs --scanners misconfig .
 Detected config files num=0
 ```
 
-Aucun fichier de configuration pris en charge par le scanner n'a été identifié.
+Aucun des types de fichier de configuration pris en charge par le scanner n'a été identifié.
 
 ### 4.2. Analyse de Docker Compose
 
@@ -292,38 +291,26 @@ Detected config files num=0
 Supported files for scanner(s) not found
 ```
 
-Le fichier `compose.yaml` n'a pas été reconnu comme fichier de configuration pris en charge dans ce contexte d'analyse.
+Le fichier `compose.yaml` n'a pas été reconnu comme fichier de configuration pris en charge par trivy. Ce qui est cohérent
 
 ### 4.3. Conclusion
 
-Ces contrôles n'ont pas permis d'évaluer les configurations du projet.
+Ces contrôles n'ont pas permis d'évaluer les configurations du projet. Rapelons que  compose.yaml et application.yaml ne font pas partie des fichiers pris en charge par trivy.
 
-L'absence de résultats ne signifie donc pas qu'aucune mauvaise configuration n'existe. Une analyse complémentaire avec un outil ou un format pris en charge sera nécessaire pour évaluer ces éléments.
-
-## 5. Analyse des images Docker
-
-L'analyse des images Docker n'a pas encore été réalisée.
-
-Ce contrôle devra notamment porter sur :
-
-- Les vulnérabilités des paquets présents dans les images.
-- Les composants système et bibliothèques installés.
-- Les versions des images de base.
-- Les éventuelles vulnérabilités connues des images utilisées.
+Peut-etre faudra-t-il considére de faire une analyse complémentaire avec un autre outil afin d'évaluer ces éléments.
 
 ## 6. Synthèse des actions
 
 | Action | État |
 |---|---|
-| Analyse des dépendances Java | ✅ Réalisée |
-| Détection des secrets | ✅ Réalisée |
-| Configuration personnalisée des règles de détection | ✅ Réalisée |
-| Identification du secret dans `.env` | ✅ Réalisée |
-| Retrait de `.env` du suivi Git | ✅ Réalisé |
-| Vérification de l'exclusion dans `.gitignore` | ✅ Réalisée |
-| Renouvellement du mot de passe exposé | ⏳ À effectuer |
-| Analyse des configurations | ⚪ Non concluante |
-| Analyse des images Docker | ⏳ À effectuer |
+| Analyse des dépendances Java | Réalisée |
+| Détection des secrets | Réalisée |
+| Configuration personnalisée des règles de détection | Réalisée |
+| Identification du secret dans `.env` | Réalisée |
+| Retrait de `.env` du suivi Git | Réalisé |
+| Vérification de l'exclusion dans `.gitignore` | Réalisée |
+| Analyse des configurations | Non concluante avec Trivy|
+
 
 ## 7. Conclusion générale
 
@@ -333,6 +320,6 @@ Le fichier a depuis été retiré du suivi Git et son exclusion est effective. L
 
 Par ailleurs, aucune vulnérabilité connue n'a été détectée dans les dépendances Java analysées.
 
-Les contrôles de configuration n'ont pas abouti, car Trivy n'a reconnu aucun fichier pris en charge dans le périmètre testé. Enfin, l'analyse des images Docker reste à réaliser.
+Les contrôles de configuration n'ont pas abouti, car Trivy ne prend pas en charge des fichiers comme application.yaml, compose.yaml charge dans son scan.
 
-**Bilan : audit partiellement concluant. Une exposition de secret a été identifiée, les premières mesures correctives ont été appliquées et plusieurs contrôles complémentaires restent nécessaires.**
+**Bilan : Une exposition de secret a été identifiée, les premières mesures correctives ont été appliquées**

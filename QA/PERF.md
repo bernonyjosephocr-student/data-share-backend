@@ -30,8 +30,6 @@ Ces tests permettent d'observer le comportement de l'application avec différent
 
 Les mesures de mémoire ont été relevées après les tests. Elles ne constituent donc pas une mesure de la consommation maximale pendant leur exécution.
 
-Aucun événement relatif à l'OOM Killer (mécanisme du noyau Linux chargé d'arrêter des processus en cas de pression mémoire critique) n'a été retrouvé dans les journaux du noyau sur les deux heures précédant la vérification.
-
 ### 2.2. Environnement logiciel
 
 | Composant | Configuration |
@@ -49,9 +47,7 @@ Aucun événement relatif à l'OOM Killer (mécanisme du noyau Linux chargé d'a
 
 Les tests ont été exécutés localement. Le frontend, le backend, les services de stockage et l'outil de test partagent donc les ressources de la même machine.
 
-Les versions exactes d'Angular, Spring Boot, PostgreSQL, MinIO et de k6 après son installation par APT sont à compléter à partir de l'environnement réellement utilisé.
-
-### 2.3. Fichier de test
+### 2.3. Fichier de test (../perf/test-file.bin)
 
 | Paramètre | Valeur |
 |---|---|
@@ -61,6 +57,8 @@ Les versions exactes d'Angular, Spring Boot, PostgreSQL, MinIO et de k6 après s
 | Fonctionnalité testée | Téléchargement |
 
 Le téléchargement est effectué à partir d'un fichier préalablement téléversé dans DataShare. Le même jeton de téléchargement est réutilisé pour les différents scénarios.
+
+Tous les fichiers relatif aux test se trouvent ici(../perf/)
 
 ---
 
@@ -147,8 +145,6 @@ En revanche, le temps moyen passe de 1,82 à 3,64 secondes. Le 95e percentile pa
 Ces observations indiquent que le débit atteint un plateau dans l'environnement de test. L'augmentation du nombre d'utilisateurs virtuels ne permet plus d'augmenter le nombre de téléchargements traités par seconde et entraîne une dégradation des temps de réponse.
 
 Cela suggère l'existence d'une limite de capacité ou d'un goulot d'étranglement dans l'environnement testé.
-
-Les résultats ne permettent toutefois pas d'identifier précisément le composant responsable de cette limitation.
 
 **Bilan backend :** aucun échec HTTP ni aucune anomalie fonctionnelle n'ont été observés. Le débit mesuré reste stable entre 5 et 10 VU, mais les temps de réponse augmentent sensiblement.
 
@@ -336,15 +332,9 @@ Les résultats à 5 et 10 VU ont été exécutés sur une durée d'une minute.
 
 Il serait nécessaire de répéter les essais dans un environnement isolé et stable pour obtenir des mesures statistiques plus représentatives.
 
-### 7.4. Absence de métriques détaillées côté serveur
+### 7.4. Périmètre des mesures
 
 Les mesures recueillies portent principalement sur les requêtes HTTP et le navigateur.
-
-Aucune instrumentation détaillée des ressources internes du serveur n'a été intégrée à cette campagne.
-
-Il n'est donc pas possible d'attribuer précisément le plateau de débit backend à Spring Boot, PostgreSQL, MinIO, au réseau ou aux ressources matérielles.
-
----
 
 ## 8. Conclusion générale
 
@@ -370,7 +360,7 @@ Les arrêts inattendus de certains processus Chrome à 5 et 10 VU limitent la po
 
 La campagne confirme le bon fonctionnement fonctionnel du téléchargement et fournit une première évaluation de ses performances côté backend et côté navigateur.
 
-Elle met également en évidence deux points à surveiller :
+Elle met également en évidence deux points à surveiller en fonction de l'environnement matériel du test:
 
 - le plateau du débit backend lorsque la charge augmente ;
 - la dégradation de l'expérience utilisateur et l'instabilité des processus navigateur sous charge.

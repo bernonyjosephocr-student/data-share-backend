@@ -149,16 +149,6 @@ En cas d'exposition d'un secret :
 - vérifier les éventuelles traces de son utilisation ;
 - supprimer les occurrences accidentelles dans les dépôts et les historiques lorsque cela est nécessaire.
 
-### 3.4. Configuration Docker
-
-Contrôler la configuration Docker Compose :
-
-```bash
-trivy config compose.yaml
-```
-
-Les résultats des analyses doivent être examinés et les vulnérabilités présentant un risque significatif doivent être corrigées en priorité.
-
 ## 4. Sauvegarde et restauration des données: procédures à définir et à tester avant une mise en production.
 
 La sauvegarde est essentielle pour éviter toute perte de données en cas de panne ou de mauvaise manipulation.
@@ -217,11 +207,9 @@ Contrôler :
 - les erreurs lors des opérations d'envoi et de téléchargement ;
 - l'exécution du nettoyage automatique des fichiers expirés.
 
-Le nettoyage automatique est configuré pour s'exécuter toutes les cinq minutes.
+Le nettoyage automatique est configuré pour s'exécuter toutes les cinq minutes mais ceci est configurable(ref: .env.example)
 
 La durée maximale de conservation des fichiers est actuellement fixée à sept jours.
-
-Une attention particulière doit être portée à cette fonctionnalité, car elle entraîne la suppression automatique des fichiers arrivés à expiration.
 
 ### 5.2. Frontend
 
@@ -269,7 +257,7 @@ En cas d'incident, appliquer une procédure progressive.
 ### 7.1. Identification
 
 - Identifier le service concerné : frontend, backend, PostgreSQL ou MinIO.
-- Consulter les journaux.
+- Consulter les journaux/logs.
 - Reproduire le problème lorsque cela est possible.
 - Évaluer l'impact sur les utilisateurs et les données.
 
@@ -277,7 +265,8 @@ En cas d'incident, appliquer une procédure progressive.
 
 - Corriger la configuration ou le composant concerné.
 - Appliquer les correctifs nécessaires.
-- Restaurer les données à partir d'une sauvegarde si nécessaire.
+- Enrichir les tests si besoin.
+- Si nécessaire, restaurer les données à partir d'une sauvegarde.
 - Vérifier le fonctionnement des services après intervention.
 
 ### 7.3. Validation

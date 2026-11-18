@@ -2,11 +2,9 @@
 
 ## BACKEND API
 
-### IT1 – Étape 1 : Tests unitaires
+### Étape 1 : Tests unitaires
 
 #### 1. UserAccountServiceTest
-
-**Objectif :** Vérifier les comportements métier du service `UserAccountService`, notamment l'inscription et l'authentification des utilisateurs.
 
 | ID | Cas de test | Comportement attendu |
 | --- | --- | --- |
@@ -18,8 +16,6 @@
 
 #### 2. JWTServiceTest
 
-**Objectif :** Vérifier la génération, la validation et l'extraction des informations contenues dans les JWT d'authentification et de téléchargement.
-
 | ID | Cas de test | Comportement attendu |
 | --- | --- | --- |
 | JWT-UNIT-01 | Génération d'un JWT d'authentification | Génère un token correctement structuré, signé avec la clé configurée et contenant le sujet attendu ainsi qu'une date d'expiration. |
@@ -29,8 +25,6 @@
 | JWT-UNIT-05 | Extraction du sujet d'un JWT de téléchargement expiré | Vérifie la signature et l'action `DOWNLOAD`, mais permet de récupérer le sujet même lorsque le token est expiré. |
 
 #### 3. FileServiceTest
-
-Objectif : Vérifier les comportements métier du service FileService, notamment le téléversement, la consultation, la suppression et le téléchargement des fichiers.
 
 | ID | Cas de test | Comportement attendu |
 | --- | --- | --- |
@@ -43,17 +37,13 @@ Objectif : Vérifier les comportements métier du service FileService, notamment
 
 #### 4 ExpiredFileCleanupCronServiceTest
 
-Objectif :  Vérifier que le cron cleanup délègue la suppression des fichiers expirés au FileService.
-
 | ID | Cas de test | Comportement attendu |
 |---|---|---|
 | CRON-UNIT-01 | Exécution du nettoyage automatique des fichiers expirés | La méthode `deleteExpiredFiles()` de `FileService` est appelée. |
 
-### IT1 – Étape 2 : Tests d'intégration
+### Étape 2 : Tests d'intégration
 
 #### 1. UserAccountController
-
-Objectif : Vérifier le fonctionnement de l'inscription et de l'authentification des utilisateurs à travers l'API REST, en validant les échanges entre le contrôleur, les services et PostgreSQL, ainsi que la génération et la validation des JWT.
 
 | ID | Cas de test | Comportement attendu |
 |---|---|---|
@@ -62,8 +52,6 @@ Objectif : Vérifier le fonctionnement de l'inscription et de l'authentification
 | AUTH-INT-03 | Connexion avec un mot de passe incorrect | Retourne un statut HTTP 401. |
 
 #### 2. FileController — Tests d'intégration
-
-Objectif : Vérifier le fonctionnement des opérations de téléversement, de consultation, de téléchargement et de suppression des fichiers à travers l'API REST, en validant leur intégration avec les services métier, PostgreSQL et MinIO, ainsi que les mécanismes d'authentification et de validation des fichiers.
 
 | ID | Cas de test | Comportement attendu |
 |---|---|---|
@@ -76,17 +64,15 @@ Objectif : Vérifier le fonctionnement des opérations de téléversement, de co
 
 #### 3. DataShareBackendApplicationTests
 
-Objectif : Vérifier que le JWT filtre les route et accepte un token utilisateur valide
-
 | ID | Cas de test | Comportement attendu |
 |---|---|---|
-| FILTER-INT-04 | Accès à une route protégée sans token JWT | Retourne un statut HTTP 401 Unauthorized. |
-| FILTER-INT-05 | Accès à une route protégée avec un token JWT valide | Le filtre JWT authentifie l'utilisateur et laisse passer la requête. |
-| FILTER-INT-06 | Accès à une route protégée avec un token JWT invalide | Retourne un statut HTTP 401 Unauthorized. |
+| FILTER-INT-01 | Accès à une route protégée sans token JWT | Retourne un statut HTTP 401 Unauthorized. |
+| FILTER-INT-02 | Accès à une route protégée avec un token JWT valide | Le filtre JWT authentifie l'utilisateur et laisse passer la requête. |
+| FILTER-INT-03 | Accès à une route protégée avec un token JWT invalide | Retourne un statut HTTP 401 Unauthorized. |
 
 ## FRONT-END
 
-### Test cases
+### Jest tests unitaires
 
 #### 1. User service
 
@@ -95,6 +81,14 @@ Objectif : Vérifier que le JWT filtre les route et accepte un token utilisateur
 | US-01 | Inscription d'un utilisateur | Une requête POST est envoyée vers `/api/auth/register` avec les informations de l'utilisateur. |
 | US-02 | Connexion d'un utilisateur | Une requête POST est envoyée vers `/api/auth/login` avec les identifiants et le token retourné est récupéré. |
 | US-03 | Enregistrement du token après connexion | Le token JWT est enregistré dans le `localStorage`. |
+| US-04 | Récupération du token en l'absence de session | La méthode retourne `null` lorsqu'aucun token n'est présent dans le `localStorage`. |
+| US-05 | Vérification d'un token malformé | La méthode retourne `null` lorsqu'un token ne respecte pas le format JWT attendu. |
+| US-06 | Vérification d'un token sans expiration | La méthode retourne `null` lorsqu'un token ne contient pas de date d'expiration (`exp`). |
+| US-07 | Récupération d'un token valide | Le token est retourné lorsqu'il possède une date d'expiration future. |
+| US-08 | Gestion d'un token expiré | La méthode retourne `null` et supprime le token expiré du `localStorage`. |
+| US-09 | Vérification d'une session active | La méthode `isLoggedIn()` retourne `true` lorsqu'un token valide est présent. |
+| US-10 | Vérification d'une session inactive | La méthode `isLoggedIn()` retourne `false` lorsqu'aucun token valide n'est disponible. |
+| US-11 | Suppression de la session | La méthode `clearSession()` supprime le token du `localStorage`. |
 
 #### 2 File Service
 
@@ -120,10 +114,9 @@ Objectif : Vérifier que le JWT filtre les route et accepte un token utilisateur
 | UC-01 | Initialisation du composant | Le fichier sélectionné dans `FileService` est récupéré et ajouté à `selectedFiles`. |
 | UC-02 | Initialisation du formulaire | Le formulaire est initialisé avec les valeurs par défaut et respecte les contraintes de validation. |
 | UC-03 | Téléversement sans authentification | `FileService.uploadFile()` est appelé avec un token `null` et les données du fichier et des métadonnées. |
-| UC-04 | Téléversement avec authentification | `FileService.uploadFile()` est appelé avec le token utilisateur et les données du fichier et des métadonnées. |
-| UC-05 | Réception du résultat du téléversement | Le token de téléchargement est récupéré et `currentStep` passe à `UPLOAD_SUCCESS`. |
-| UC-06 | Partage d'un autre fichier | L'utilidateur est redirigé vers la page d'acceuil. |
-| UC-07 | Ajouter un tag | Le tag est ajouté dans la liste des tags. |
+| UC-04 | Réception du résultat du téléversement | Le token de téléchargement est récupéré et `currentStep` passe à `UPLOAD_SUCCESS`. |
+| UC-05 | Partage d'un autre fichier | L'utilidateur est redirigé vers la page d'acceuil. |
+| UC-06 | Ajouter un tag valide | Le tag est ajouté dans la liste des tags. |
 
 #### 5 FileDownloadComponent
 
@@ -147,7 +140,7 @@ Objectif : Vérifier que le JWT filtre les route et accepte un token utilisateur
 | ID | Cas de test | Comportement attendu |
 |---|---|---|
 | AI-01 | Requête vers une API protégée avec token | Le header `Authorization: Bearer <token>` est ajouté. |
-| AI-02 | Requête vers une API protégée sans token | La requête est transmise sans header Authorization. |
+| AI-02 | Requête vers une API protégée mais le token est expiré | Le header `Authorization: Bearer <token>` n'est pas ajouté. |
 | AI-03 | Connexion ou inscription | Aucun token n'est ajouté aux requêtes publiques. |
 | AI-04 | Requête vers une URL externe | Aucun token n'est ajouté. |
 
@@ -175,7 +168,7 @@ Objectif : Vérifier que le JWT filtre les route et accepte un token utilisateur
 | MS-02 | Chargement des fichiers de l'utilisateur | Les fichiers sont récupérés depuis `FileService` et affichés selon le filtre actif. |
 | MS-03 | Suppression d'un fichier | Après confirmation, le service est appelé et le fichier est retiré de la liste. |
 
-#### rRegistreComponent
+#### RegisterComponent
 
 | ID | Cas de test | Comportement attendu |
 |---|---|---|
@@ -185,11 +178,9 @@ Objectif : Vérifier que le JWT filtre les route et accepte un token utilisateur
 | REG-04 | Vérification de la confirmation du mot de passe | Un message d'erreur est affiché si les mots de passe sont différents. |
 | REG-05 | Inscription réussie | Le compte est créé et l'utilisateur est redirigé vers `/login`. |
 
+## E2E Cypress tests
 
-
-### E2E Cypress tests
-
-#### Parcours A — Téléversement anonyme et Téléchargement
+### Parcours A — Téléversement anonyme et Téléchargement
 
 | ID | Cas de test | Comportement attendu |
 |---|---|---|
@@ -197,10 +188,10 @@ Objectif : Vérifier que le JWT filtre les route et accepte un token utilisateur
 | E2E-02 | Upload anonyme | Le fichier est envoyé et le téléversement aboutit. |
 | E2E-03 | Download anonyme | Le fichier est téléchargé, le contenu téléchargé est vérifié et retour sur la page d'accueil.|
 | E2E-04 | Upload anonyme protégé | Le fichier est envoyé avec un mot de passe. |
-| E2E-05 | Download anonyme protégé | Le mot de passe est demandé, le contenu téléchargé est vérifié et retour sur la page d'accueil. |
+| E2E-05 | Download anonyme protégé | Le mot de passe est demandé et renseigné, le contenu téléchargé est vérifié et retour sur la page d'accueil. |
 
 
-#### Parcours B — Téléversement avec authentification et Téléchargement
+### Parcours B — Téléversement avec authentification et Téléchargement
 
 | ID | Parcours | Comportement attendu |
 |---|---|---|
@@ -208,4 +199,4 @@ Objectif : Vérifier que le JWT filtre les route et accepte un token utilisateur
 | E2E-02 | Se connecter et téléverser un fichier | Un vrai fichier est envoyé à `/api/auth/files` sans mot de passe. |
 | E2E-03 | Téléchargment du fichier | Le contenu téléchargé est vérifié. |
 | E2E-04 | Se connecter et téléverser un fichier protégé | Un vrai fichier est envoyé à `/api/auth/files` avec un mot de passe. |
-| E2E-05 | Télécharger le fichier protégé | Le mot de passe est demandé et le contenu téléchargé est vérifié. |
+| E2E-05 | Télécharger le fichier protégé | Le mot de passe est demandé et renseigné et le contenu téléchargé est vérifié. |
