@@ -2,9 +2,12 @@ package com.projet3.datasharing.backend.service.storage;
 
 import com.projet3.datasharing.backend.config.logging.LogKeys;
 import com.projet3.datasharing.backend.service.file.FileService;
+import java.util.concurrent.ScheduledFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,9 +16,43 @@ import org.springframework.stereotype.Service;
 public class ExpiredFileCleanupCronService {
 
   private final FileService fileService;
+  private final TaskScheduler taskScheduler;
 
-  @Scheduled(cron = "${app.cleanup.cron:0 */5 * * * *}")
-  public void cleanupExpiredFiles() {
+  @Value("${storage.cleanup.cron}")
+  private String cronExpression;
+
+  private ScheduledFuture<?> scheduledTask;
+
+  /** Updates the cron expression. */
+  public synchronized void updateCron(String cron) {
+    this.cronExpression = cron;
+
+    if (scheduledTask != null && !scheduledTask.isCancelled()) {
+      // do not inturupt the current cron
+      scheduledTask.cancel(false);
+      // create a new scheduling
+      scheduledTask = taskScheduler.schedule(this::cleanupExpiredFiles, new CronTrigger(cron));
+    }
+
+    log.atInfo()
+        .addKeyValue(LogKeys.EVENT, "expired_files_cleanup_cron_updated")
+        .addKeyValue("cron", cron)
+        .log("Cleanup cron updated");
+  }
+
+  /** Activates the cleanup task. */
+  public synchronized void activate() {
+    if (scheduledTask != null && !scheduledTask.isCancelled()) {
+      return;
+    }
+    // create the expired files cleanup task usint the cron
+    scheduledTask =
+        taskScheduler.schedule(this::cleanupExpiredFiles, new CronTrigger(cronExpression));
+
+    log.info("Cleanup activated with cron: {}", cronExpression);
+  }
+
+  private void cleanupExpiredFiles() {
 
     long startTime = System.nanoTime();
 

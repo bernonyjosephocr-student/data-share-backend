@@ -34,7 +34,7 @@ Les fichiers sont stockés dans MinIO, compatible avec l'API Amazon S3. Les donn
 
 - JDK 21.
 - Apache Maven 3.9.x.
-- Docker Engine ou Docker Desktop.
+- Docker Engine(29.8.X) ou Docker Desktop.
 - Docker Compose.
 - OpenSSL pour générer la clé JWT.
 

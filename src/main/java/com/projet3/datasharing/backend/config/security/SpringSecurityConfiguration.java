@@ -54,7 +54,8 @@ public class SpringSecurityConfiguration {
                 "/api/auth/login",
                 "/api/files",
                 "/api/auth/files/**",
-                "/api/files/download"))
+                "/api/files/download",
+                "/api/admin/cleanup/**"))
         .sessionManagement(
             management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authenticationProvider(authenticationProvider())
@@ -64,7 +65,11 @@ public class SpringSecurityConfiguration {
                 .requestMatchers("/actuator/**")
                 .permitAll()
                 .requestMatchers(
-                    "/api/auth/register", "/api/auth/login", "/api/files", "/api/files/download")
+                    "/api/auth/register",
+                    "/api/auth/login",
+                    "/api/files",
+                    "/api/files/download",
+                    "/api/admin/cleanup/**")
                 .permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
                 .permitAll()
